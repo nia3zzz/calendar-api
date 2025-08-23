@@ -24,6 +24,8 @@ class User(base):
         nullable=False,
     )
 
+    password: Mapped[str] = mapped_column(String(300), nullable=False)
+
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
