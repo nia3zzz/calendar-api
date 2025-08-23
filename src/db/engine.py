@@ -17,3 +17,12 @@ session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # create the base for the models
 base = declarative_base()
+
+
+# the session maker that would be used in api routes
+def get_db():
+    db = session_local()
+    try:
+        yield db
+    finally:
+        db.close()

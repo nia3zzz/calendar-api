@@ -1,9 +1,14 @@
-from ..db.engine import base
-from uuid import uuid4
-from sqlalchemy import UUID, ForeignKey, String, DateTime, JSON, Boolean, func
+from typing import TYPE_CHECKING
+from db.engine import base
+from uuid import uuid4, UUID
+from sqlalchemy import ForeignKey, String, DateTime, JSON, Boolean, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 import datetime
-from .user_model import User
+
+
+# to avoid circular imports
+if TYPE_CHECKING:
+    from .user_model import User
 
 
 # defining the event model
@@ -37,7 +42,7 @@ class Event(base):
     )
 
     updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     user: Mapped["User"] = relationship("User", back_populates="events")

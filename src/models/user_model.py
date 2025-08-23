@@ -1,9 +1,13 @@
-from ..db.engine import base
-from sqlalchemy import String, DateTime, func, UUID, String
-from uuid import uuid4
+from typing import TYPE_CHECKING
+from db.engine import base
+from sqlalchemy import String, DateTime, func, String
+from uuid import uuid4, UUID
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 import datetime
-from .event_model import Event
+
+# to avoid circular imports
+if TYPE_CHECKING:
+    from .event_model import Event
 
 
 # defining the user model
@@ -31,10 +35,10 @@ class User(base):
     )
 
     updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    events: Mapped[list["Event"]] = relationship(back_populates="user")
+    events: Mapped[list["Event"]] = relationship("Event")
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"
