@@ -7,3 +7,9 @@ class Create_User_Validator(BaseModel):
     last_name: str = Field(min_length=3, max_length=30)
     email: EmailStr
     password: str = Field(min_length=6, max_length=30)
+
+
+# login user validator class
+class Login_User_Validator(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=30)
