@@ -14,15 +14,18 @@ auth_routes = APIRouter()
 
 
 # create the sign up route for the user
-@auth_routes.post("/signup", tags=["Auth"])
+@auth_routes.post("/signup", status_code=201, tags=["Auth"])
 def sign_up(req_data: Create_User_Validator, db: Session = Depends(get_db)):
     # check if an user exists with the provided email
     found_user = db.query(User).filter_by(email=req_data.email).first()
 
     if found_user != None:
         raise HTTPException(
-            409,
-            {"status": "error", "message": "User with this email already exists."},
+            status_code=409,
+            detail={
+                "status": "error",
+                "message": "User with this email already exists.",
+            },
         )
 
     try:
@@ -45,7 +48,8 @@ def sign_up(req_data: Create_User_Validator, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
         raise HTTPException(
-            500, {"status": "error", "message": "Internal server error."}
+            status_code=500,
+            detail={"status": "error", "message": "Internal server error."},
         )
 
 
@@ -59,7 +63,8 @@ def login(
 
     if found_user == None:
         raise HTTPException(
-            409, {"status": "error", "message": "Invalid data provided."}
+            status_code=409,
+            detail={"status": "error", "message": "Invalid data provided."},
         )
 
     # check if the password matches
@@ -67,7 +72,8 @@ def login(
 
     if not check_password:
         raise HTTPException(
-            409, {"status": "error", "message": "Invalid data provided."}
+            status_code=409,
+            detail={"status": "error", "message": "Invalid data provided."},
         )
 
     try:
@@ -82,9 +88,24 @@ def login(
             value=generated_jwt,
         )
         return {"status": "success", "message": "User logged in successfully."}
-    except Exception as e:
-        print(e)
+    except:
         db.rollback()
         raise HTTPException(
-            500, {"status": "error", "message": "Internal server error."}
+            status_code=500,
+            detail={"status": "error", "message": "Internal server error."},
+        )
+
+
+# logout the user by clearing the cookie
+@auth_routes.post("/logout", tags=["Auth"])
+def logout(response: Response):
+    try:
+        # clear the cookie and return success message
+        response.delete_cookie(key="Access_Cookie")
+
+        return {"status": "success", "message": "User logged out successfully."}
+    except:
+        raise HTTPException(
+            status_code=500,
+            detail={"status": "error", "message": "Internal server error."},
         )
