@@ -10,15 +10,31 @@ from sqlalchemy.orm import Session
 from routes.auth_routes import auth_routes
 import jwt
 from lib.assign_jwt import secret_key
+import strawberry
+from strawberry.fastapi import GraphQLRouter
+
 
 v1 = FastAPI()
+
+
+# initialize the health check of graphql
+@strawberry.type
+class Query:
+    @strawberry.field
+    def hello(self) -> str:
+        return "Hello World"
+
+
+schema = strawberry.Schema(Query)
+
+graphql_app = GraphQLRouter(schema)
 
 
 # define a auth middleware for every route except signup, login and the healthcheck
 @v1.middleware("http")
 async def AuthenticationMiddleware(request: Request, call_next):
     # check if its the allowed routes
-    if request.url.path in ["/api/v1/auth/signup", "/api/v1/auth/login", "/"]:
+    if request.url.path != "/api/v1/graphql":
         return await call_next(request)
 
     # check for the cookie
@@ -50,6 +66,9 @@ async def AuthenticationMiddleware(request: Request, call_next):
 
 # include auth routes
 v1.include_router(router=auth_routes, prefix="/api/v1/auth")
+
+# include the graphql route
+v1.include_router(graphql_app, prefix="/api/v1/graphql", tags=["GraphQl"])
 
 
 # health check route
