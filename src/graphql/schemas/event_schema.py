@@ -13,6 +13,7 @@ class RoleEnum(enum.Enum):
 
 @strawberry.type
 class EventRole:
+    id: UUID
     user: User
     role: RoleEnum
 

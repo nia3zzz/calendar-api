@@ -1,14 +1,41 @@
 from typing import TYPE_CHECKING
 from db.engine import base
 from uuid import uuid4, UUID
-from sqlalchemy import ForeignKey, String, DateTime, JSON, Boolean, func
+from sqlalchemy import ForeignKey, String, DateTime, JSON, Boolean, func, Enum
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 import datetime
+import enum
+
+
+class RoleEnum(str, enum.Enum):
+    EDITOR = "editor"
+    VIEWER = "viewer"
 
 
 # to avoid circular imports
 if TYPE_CHECKING:
     from .user_model import User
+
+
+# defining a role model to store event roles effeciently
+class EventRole(base):
+    __tablename__ = "event_roles"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, insert_default=uuid4, index=True)
+
+    event_id: Mapped[UUID] = mapped_column(
+        ForeignKey("events.id"), nullable=False, index=True
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id"), nullable=False, index=True
+    )
+
+    role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), nullable=False)
+
+    event: Mapped["Event"] = relationship("Event", back_populates="roles")
+
+    user: Mapped["User"] = relationship("User", back_populates="event_roles")
 
 
 # defining the event model
@@ -23,7 +50,7 @@ class Event(base):
 
     description: Mapped[str] = mapped_column(String, nullable=False)
 
-    roles: Mapped[list[dict]] = mapped_column(JSON, nullable=False, default=list)
+    roles: Mapped[list[EventRole]] = relationship("EventRole", back_populates="event")
 
     is_recurring: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -46,6 +73,10 @@ class Event(base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="events")
+
+    event_roles: Mapped[list["EventRole"]] = relationship(
+        "EventRole", back_populates="event"
+    )
 
     def __repr__(self) -> str:
         return f"Event(id={self.id!r}, user_id={self.user_id!r})"

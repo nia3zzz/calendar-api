@@ -5,7 +5,7 @@ load_dotenv()
 
 from db.engine import base, engine
 from models.user_model import User
-from models.event_model import Event
+from models.event_model import Event, RoleEnum
 
 base.metadata.create_all(bind=engine)
 print("Tables created successfully!")

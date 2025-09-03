@@ -8,6 +8,7 @@ import datetime
 # to avoid circular imports
 if TYPE_CHECKING:
     from .event_model import Event
+    from .event_model import EventRole
 
 
 # defining the user model
@@ -39,6 +40,10 @@ class User(base):
     )
 
     events: Mapped[list["Event"]] = relationship("Event")
+
+    event_roles: Mapped[list["EventRole"]] = relationship(
+        "EventRole", back_populates="user"
+    )
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"
